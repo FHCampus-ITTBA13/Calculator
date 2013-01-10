@@ -7,6 +7,7 @@
 //
 
 #import "FHCCalculator.h"
+#import <math.h>
 
 @interface FHCCalculator ()
 
@@ -35,10 +36,25 @@
 
 - (double)performOperation:(NSString *)operation {
     double result = 0.;
-    
+
     if ([operation isEqualToString:@"+"]) {
         result = [self poppedOperand] + [self poppedOperand];
+    } else if ([operation isEqualToString:@"*"]) {
+        result = [self poppedOperand] * [self poppedOperand];
+    } else if ([operation isEqualToString:@"-"]) {
+        double operand = [self poppedOperand];
+        result = [self poppedOperand] - operand;
+    } else if ([operation isEqualToString:@"/"]) {
+        double operand = [self poppedOperand];
+        
+        if (operand != 0.) {
+            result = [self poppedOperand] / operand;
+        }
+    } else if ([operation isEqualToString:@"sqrt"]) {
+        result = sqrt([self poppedOperand]);
     }
+    
+    [self pushOperand:result];
     
     return result;
 }
