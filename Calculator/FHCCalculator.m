@@ -11,7 +11,7 @@
 
 @interface FHCCalculator ()
 
-@property (nonatomic, strong) NSMutableArray *operandStack;
+@property (nonatomic, strong) NSMutableArray *programStack;
 
 @end
 
@@ -21,52 +21,74 @@
     self = [super init];
     
     if (self != nil) {
-        self.operandStack = [[NSMutableArray alloc] init];
+        self.programStack = [[NSMutableArray alloc] init];
     }
     
     return self;
 }
 
-- (void)pushOperand:(double)operand {
-    NSNumber *numberObject = @(operand);
-    //NSNumber *numberObject = [NSNumber numberWithDouble:operand];
-    
-    [self.operandStack addObject:numberObject];
++ (NSString *)descriptionOfProgram:(id)program {
+    return @"TODO: Implement";
 }
 
-- (double)performOperation:(NSString *)operation {
-    double result = 0.;
-
-    if ([operation isEqualToString:@"+"]) {
-        result = [self poppedOperand] + [self poppedOperand];
-    } else if ([operation isEqualToString:@"*"]) {
-        result = [self poppedOperand] * [self poppedOperand];
-    } else if ([operation isEqualToString:@"-"]) {
-        double operand = [self poppedOperand];
-        result = [self poppedOperand] - operand;
-    } else if ([operation isEqualToString:@"/"]) {
-        double operand = [self poppedOperand];
-        
-        if (operand != 0.) {
-            result = [self poppedOperand] / operand;
-        }
-    } else if ([operation isEqualToString:@"sqrt"]) {
-        result = sqrt([self poppedOperand]);
++ (double)runProgram:(id)program {
+    NSMutableArray *stack = nil;
+    
+    if ([program isKindOfClass:[NSArray class]]) {
+        stack = [program mutableCopy];
     }
     
-    [self pushOperand:result];
+    return [self poppedOperandOfStack:stack];
+}
+
++ (double)poppedOperandOfStack:(NSMutableArray *)stack {
+    double result = 0.;
+    id topOfStack = [stack lastObject];
+    
+    if (topOfStack != nil) {
+        [stack removeLastObject];
+    }
+    
+    if ([topOfStack isKindOfClass:[NSNumber class]]) {
+        result = [topOfStack doubleValue];
+    } else if ([topOfStack isKindOfClass:[NSString class]]) {
+        NSString *operation = topOfStack;
+        
+        if ([operation isEqualToString:@"+"]) {
+            result = [self poppedOperandOfStack:stack] + [self poppedOperandOfStack:stack];
+        } else if ([operation isEqualToString:@"*"]) {
+            result = [self poppedOperandOfStack:stack] * [self poppedOperandOfStack:stack];
+        } else if ([operation isEqualToString:@"-"]) {
+            double operand = [self poppedOperandOfStack:stack];
+            result = [self poppedOperandOfStack:stack] - operand;
+        } else if ([operation isEqualToString:@"/"]) {
+            double operand = [self poppedOperandOfStack:stack];
+            
+            if (operand != 0.) {
+                result = [self poppedOperandOfStack:stack] / operand;
+            }
+        } else if ([operation isEqualToString:@"sqrt"]) {
+            result = sqrt([self poppedOperandOfStack:stack]);
+        }
+    }
     
     return result;
 }
 
-- (double)poppedOperand {
-    NSNumber *lastOperand = [self.operandStack lastObject];
+- (void)pushOperand:(double)operand {
+    NSNumber *numberObject = @(operand);
     
-    if (lastOperand != nil) {
-        [self.operandStack removeLastObject];
-    }
+    [self.programStack addObject:numberObject];
+}
+
+- (double)performOperation:(NSString *)operation {
+    [self.programStack addObject:operation];
     
-    return [lastOperand doubleValue];
+    return [FHCCalculator runProgram:self.program];
+}
+
+- (id)program {
+    return [self.programStack copy];
 }
 
 @end
